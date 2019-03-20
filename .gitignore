@@ -1,0 +1,12 @@
+github
+github.pub
+.env
+config/database.php
+package.json
+composer.lock
+config/app.php
+storage/framework/sessions/*
+storage/logs/*
+config/session.php
+composer.phar
+vendor/*

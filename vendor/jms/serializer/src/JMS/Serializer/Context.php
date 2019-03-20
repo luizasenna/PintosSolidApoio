@@ -1,21 +1,5 @@
 <?php
 
-/*
- * Copyright 2016 Johannes M. Schmitt <schmittjoh@gmail.com>
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 namespace JMS\Serializer;
 
 use JMS\Serializer\Exception\RuntimeException;
@@ -33,6 +17,7 @@ use PhpCollection\Map;
 abstract class Context
 {
     /**
+     * @deprecated use has/get/set attribute methods
      * @var \PhpCollection\Map
      */
     public $attributes;
@@ -81,6 +66,12 @@ abstract class Context
         $this->metadataStack = new \SplStack();
     }
 
+    /**
+     * @deprecated  Will be removed in 2.0, Use getNavigator()->accept() instead
+     * @param $data
+     * @param array|null $type
+     * @return mixed
+     */
     public function accept($data, array $type = null)
     {
         return $this->navigator->accept($data, $type, $this);
@@ -106,6 +97,16 @@ abstract class Context
         return $this->exclusionStrategy;
     }
 
+    public function hasAttribute($key)
+    {
+        return $this->attributes->get($key)->isDefined();
+    }
+
+    public function getAttribute($key)
+    {
+        return $this->attributes->get($key)->get();
+    }
+
     public function setAttribute($key, $value)
     {
         $this->assertMutable();
@@ -116,7 +117,7 @@ abstract class Context
 
     private function assertMutable()
     {
-        if ( ! $this->initialized) {
+        if (!$this->initialized) {
             return;
         }
 
@@ -171,8 +172,8 @@ abstract class Context
             throw new \LogicException('The groups must not be empty.');
         }
 
-        $this->attributes->set('groups', (array) $groups);
-        $this->addExclusionStrategy(new GroupsExclusionStrategy((array) $groups));
+        $this->attributes->set('groups', (array)$groups);
+        $this->addExclusionStrategy(new GroupsExclusionStrategy((array)$groups));
 
         return $this;
     }
@@ -192,7 +193,7 @@ abstract class Context
      */
     public function setSerializeNull($bool)
     {
-        $this->serializeNull = (boolean) $bool;
+        $this->serializeNull = (boolean)$bool;
 
         return $this;
     }
@@ -232,7 +233,7 @@ abstract class Context
     {
         $metadata = $this->metadataStack->pop();
 
-        if ( ! $metadata instanceof PropertyMetadata) {
+        if (!$metadata instanceof PropertyMetadata) {
             throw new RuntimeException('Context metadataStack not working well');
         }
     }
@@ -241,7 +242,7 @@ abstract class Context
     {
         $metadata = $this->metadataStack->pop();
 
-        if ( ! $metadata instanceof ClassMetadata) {
+        if (!$metadata instanceof ClassMetadata) {
             throw new RuntimeException('Context metadataStack not working well');
         }
     }

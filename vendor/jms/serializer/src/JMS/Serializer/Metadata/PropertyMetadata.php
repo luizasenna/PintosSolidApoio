@@ -1,31 +1,15 @@
 <?php
 
-/*
- * Copyright 2016 Johannes M. Schmitt <schmittjoh@gmail.com>
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 namespace JMS\Serializer\Metadata;
 
+use JMS\Serializer\Exception\RuntimeException;
 use JMS\Serializer\TypeParser;
 use Metadata\PropertyMetadata as BasePropertyMetadata;
-use JMS\Serializer\Exception\RuntimeException;
 
 class PropertyMetadata extends BasePropertyMetadata
 {
-    const ACCESS_TYPE_PROPERTY        = 'property';
-    const ACCESS_TYPE_PUBLIC_METHOD   = 'public_method';
+    const ACCESS_TYPE_PROPERTY = 'property';
+    const ACCESS_TYPE_PUBLIC_METHOD = 'public_method';
 
     public $sinceVersion;
     public $untilVersion;
@@ -52,7 +36,29 @@ class PropertyMetadata extends BasePropertyMetadata
     public $maxDepth = null;
     public $excludeIf = null;
 
+    private $closureAccessor;
+
     private static $typeParser;
+
+    public function __construct($class, $name)
+    {
+        parent::__construct($class, $name);
+        $this->initAccessor();
+    }
+
+    private function initAccessor()
+    {
+        $classRef = $this->reflection->getDeclaringClass();
+        if ($classRef->isInternal() || $classRef->getProperty($this->name)->isStatic()) {
+            $this->closureAccessor = function ($o) {
+                return $this->reflection->getValue($o);
+            };
+        } else {
+            $this->closureAccessor = \Closure::bind(function ($o, $name) {
+                return $o->$name;
+            }, null, $this->reflection->class);
+        }
+    }
 
     public function setAccessor($type, $getter = null, $setter = null)
     {
@@ -60,22 +66,22 @@ class PropertyMetadata extends BasePropertyMetadata
             $class = $this->reflection->getDeclaringClass();
 
             if (empty($getter)) {
-                if ($class->hasMethod('get'.$this->name) && $class->getMethod('get'.$this->name)->isPublic()) {
-                    $getter = 'get'.$this->name;
-                } elseif ($class->hasMethod('is'.$this->name) && $class->getMethod('is'.$this->name)->isPublic()) {
-                    $getter = 'is'.$this->name;
-                } elseif ($class->hasMethod('has'.$this->name) && $class->getMethod('has'.$this->name)->isPublic()) {
-                    $getter = 'has'.$this->name;
+                if ($class->hasMethod('get' . $this->name) && $class->getMethod('get' . $this->name)->isPublic()) {
+                    $getter = 'get' . $this->name;
+                } elseif ($class->hasMethod('is' . $this->name) && $class->getMethod('is' . $this->name)->isPublic()) {
+                    $getter = 'is' . $this->name;
+                } elseif ($class->hasMethod('has' . $this->name) && $class->getMethod('has' . $this->name)->isPublic()) {
+                    $getter = 'has' . $this->name;
                 } else {
-                    throw new RuntimeException(sprintf('There is neither a public %s method, nor a public %s method, nor a public %s method in class %s. Please specify which public method should be used for retrieving the value of the property %s.', 'get'.ucfirst($this->name), 'is'.ucfirst($this->name), 'has'.ucfirst($this->name), $this->class, $this->name));
+                    throw new RuntimeException(sprintf('There is neither a public %s method, nor a public %s method, nor a public %s method in class %s. Please specify which public method should be used for retrieving the value of the property %s.', 'get' . ucfirst($this->name), 'is' . ucfirst($this->name), 'has' . ucfirst($this->name), $this->class, $this->name));
                 }
             }
 
-            if (empty($setter) && ! $this->readOnly) {
-                if ($class->hasMethod('set'.$this->name) && $class->getMethod('set'.$this->name)->isPublic()) {
-                    $setter = 'set'.$this->name;
+            if (empty($setter) && !$this->readOnly) {
+                if ($class->hasMethod('set' . $this->name) && $class->getMethod('set' . $this->name)->isPublic()) {
+                    $setter = 'set' . $this->name;
                 } else {
-                    throw new RuntimeException(sprintf('There is no public %s method in class %s. Please specify which public method should be used for setting the value of the property %s.', 'set'.ucfirst($this->name), $this->class, $this->name));
+                    throw new RuntimeException(sprintf('There is no public %s method in class %s. Please specify which public method should be used for setting the value of the property %s.', 'set' . ucfirst($this->name), $this->class, $this->name));
                 }
             }
         }
@@ -87,6 +93,11 @@ class PropertyMetadata extends BasePropertyMetadata
     public function getValue($obj)
     {
         if (null === $this->getter) {
+            if (null !== $this->closureAccessor) {
+                $accessor = $this->closureAccessor;
+                return $accessor($obj, $this->name);
+            }
+
             return parent::getValue($obj);
         }
 
@@ -145,6 +156,14 @@ class PropertyMetadata extends BasePropertyMetadata
 
     public function unserialize($str)
     {
+        $parentStr = $this->unserializeProperties($str);
+        parent::unserialize($parentStr);
+
+        $this->initAccessor();
+    }
+
+    protected function unserializeProperties($str)
+    {
         $unserialized = unserialize($str);
         list(
             $this->sinceVersion,
@@ -168,21 +187,21 @@ class PropertyMetadata extends BasePropertyMetadata
             $this->xmlAttributeMap,
             $this->maxDepth,
             $parentStr
-        ) = $unserialized;
+            ) = $unserialized;
 
-        if (isset($unserialized['xmlEntryNamespace'])){
+        if (isset($unserialized['xmlEntryNamespace'])) {
             $this->xmlEntryNamespace = $unserialized['xmlEntryNamespace'];
         }
-        if (isset($unserialized['xmlCollectionSkipWhenEmpty'])){
+        if (isset($unserialized['xmlCollectionSkipWhenEmpty'])) {
             $this->xmlCollectionSkipWhenEmpty = $unserialized['xmlCollectionSkipWhenEmpty'];
         }
-        if (isset($unserialized['excludeIf'])){
+        if (isset($unserialized['excludeIf'])) {
             $this->excludeIf = $unserialized['excludeIf'];
         }
-        if (isset($unserialized['skipWhenEmpty'])){
+        if (isset($unserialized['skipWhenEmpty'])) {
             $this->skipWhenEmpty = $unserialized['skipWhenEmpty'];
         }
 
-        parent::unserialize($parentStr);
+        return $parentStr;
     }
 }

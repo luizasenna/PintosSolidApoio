@@ -1,27 +1,11 @@
 <?php
 
-/*
- * Copyright 2016 Johannes M. Schmitt <schmittjoh@gmail.com>
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 namespace JMS\Serializer\Metadata;
 
 use JMS\Serializer\Exception\InvalidArgumentException;
+use Metadata\MergeableClassMetadata;
 use Metadata\MergeableInterface;
 use Metadata\MethodMetadata;
-use Metadata\MergeableClassMetadata;
 use Metadata\PropertyMetadata as BasePropertyMetadata;
 
 /**
@@ -90,12 +74,12 @@ class ClassMetadata extends MergeableClassMetadata
      */
     public function setAccessorOrder($order, array $customOrder = array())
     {
-        if ( ! in_array($order, array(self::ACCESSOR_ORDER_UNDEFINED, self::ACCESSOR_ORDER_ALPHABETICAL, self::ACCESSOR_ORDER_CUSTOM), true)) {
+        if (!in_array($order, array(self::ACCESSOR_ORDER_UNDEFINED, self::ACCESSOR_ORDER_ALPHABETICAL, self::ACCESSOR_ORDER_CUSTOM), true)) {
             throw new InvalidArgumentException(sprintf('The accessor order "%s" is invalid.', $order));
         }
 
         foreach ($customOrder as $name) {
-            if ( ! is_string($name)) {
+            if (!\is_string($name)) {
                 throw new InvalidArgumentException(sprintf('$customOrder is expected to be a list of strings, but got element of value %s.', json_encode($name)));
             }
         }
@@ -141,7 +125,7 @@ class ClassMetadata extends MergeableClassMetadata
 
     public function merge(MergeableInterface $object)
     {
-        if ( ! $object instanceof ClassMetadata) {
+        if (!$object instanceof ClassMetadata) {
             throw new InvalidArgumentException('$object must be an instance of ClassMetadata.');
         }
         parent::merge($object);
@@ -168,7 +152,7 @@ class ClassMetadata extends MergeableClassMetadata
                 $this->discriminatorBaseClass,
                 $this->discriminatorBaseClass
             ));
-        } elseif ( ! $this->discriminatorFieldName && $object->discriminatorFieldName) {
+        } elseif (!$this->discriminatorFieldName && $object->discriminatorFieldName) {
             $this->discriminatorFieldName = $object->discriminatorFieldName;
             $this->discriminatorMap = $object->discriminatorMap;
         }
@@ -183,7 +167,7 @@ class ClassMetadata extends MergeableClassMetadata
             $this->discriminatorBaseClass = $object->discriminatorBaseClass;
         }
 
-        if ($this->discriminatorMap && ! $this->reflection->isAbstract()) {
+        if ($this->discriminatorMap && !$this->reflection->isAbstract()) {
             if (false === $typeValue = array_search($this->name, $this->discriminatorMap, true)) {
                 throw new \LogicException(sprintf(
                     'The sub-class "%s" is not listed in the discriminator of the base class "%s".',
@@ -195,7 +179,8 @@ class ClassMetadata extends MergeableClassMetadata
             $this->discriminatorValue = $typeValue;
 
             if (isset($this->propertyMetadata[$this->discriminatorFieldName])
-                    && ! $this->propertyMetadata[$this->discriminatorFieldName] instanceof StaticPropertyMetadata) {
+                && !$this->propertyMetadata[$this->discriminatorFieldName] instanceof StaticPropertyMetadata
+            ) {
                 throw new \LogicException(sprintf(
                     'The discriminator field name "%s" of the base-class "%s" conflicts with a regular property of the sub-class "%s".',
                     $this->discriminatorFieldName,
@@ -222,12 +207,12 @@ class ClassMetadata extends MergeableClassMetadata
 
     public function registerNamespace($uri, $prefix = null)
     {
-        if ( ! is_string($uri)) {
+        if (!\is_string($uri)) {
             throw new InvalidArgumentException(sprintf('$uri is expected to be a strings, but got value %s.', json_encode($uri)));
         }
 
         if ($prefix !== null) {
-            if ( ! is_string($prefix)) {
+            if (!\is_string($prefix)) {
                 throw new InvalidArgumentException(sprintf('$prefix is expected to be a strings, but got value %s.', json_encode($prefix)));
             }
         } else {
@@ -288,7 +273,7 @@ class ClassMetadata extends MergeableClassMetadata
             $this->discriminatorMap,
             $this->discriminatorGroups,
             $parentStr
-        ) = $unserialized;
+            ) = $unserialized;
 
         if (isset($unserialized['discriminatorGroups'])) {
             $this->discriminatorGroups = $unserialized['discriminatorGroups'];
@@ -297,16 +282,16 @@ class ClassMetadata extends MergeableClassMetadata
             $this->usingExpression = $unserialized['usingExpression'];
         }
 
-        if (isset($deserializedData['xmlDiscriminatorAttribute'])) {
-            $this->xmlDiscriminatorAttribute = $deserializedData['xmlDiscriminatorAttribute'];
+        if (isset($unserialized['xmlDiscriminatorAttribute'])) {
+            $this->xmlDiscriminatorAttribute = $unserialized['xmlDiscriminatorAttribute'];
         }
 
-        if (isset($deserializedData['xmlDiscriminatorNamespace'])) {
-            $this->xmlDiscriminatorNamespace = $deserializedData['xmlDiscriminatorNamespace'];
+        if (isset($unserialized['xmlDiscriminatorNamespace'])) {
+            $this->xmlDiscriminatorNamespace = $unserialized['xmlDiscriminatorNamespace'];
         }
 
-        if (isset($deserializedData['xmlDiscriminatorCData'])) {
-            $this->xmlDiscriminatorCData = $deserializedData['xmlDiscriminatorCData'];
+        if (isset($unserialized['xmlDiscriminatorCData'])) {
+            $this->xmlDiscriminatorCData = $unserialized['xmlDiscriminatorCData'];
         }
 
         parent::unserialize($parentStr);
@@ -321,20 +306,20 @@ class ClassMetadata extends MergeableClassMetadata
 
             case self::ACCESSOR_ORDER_CUSTOM:
                 $order = $this->customOrder;
-                $currentSorting = $this->propertyMetadata ? array_combine(array_keys($this->propertyMetadata), range(1, count($this->propertyMetadata))) : [];
-                uksort($this->propertyMetadata, function($a, $b) use ($order, $currentSorting) {
+                $currentSorting = $this->propertyMetadata ? array_combine(array_keys($this->propertyMetadata), range(1, \count($this->propertyMetadata))) : [];
+                uksort($this->propertyMetadata, function ($a, $b) use ($order, $currentSorting) {
                     $existsA = isset($order[$a]);
                     $existsB = isset($order[$b]);
 
-                    if ( ! $existsA && ! $existsB) {
+                    if (!$existsA && !$existsB) {
                         return $currentSorting[$a] - $currentSorting[$b];
                     }
 
-                    if ( ! $existsA) {
+                    if (!$existsA) {
                         return 1;
                     }
 
-                    if ( ! $existsB) {
+                    if (!$existsB) {
                         return -1;
                     }
 

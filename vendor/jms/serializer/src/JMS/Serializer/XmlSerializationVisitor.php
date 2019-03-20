@@ -1,27 +1,12 @@
 <?php
 
-/*
- * Copyright 2016 Johannes M. Schmitt <schmittjoh@gmail.com>
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 namespace JMS\Serializer;
 
 use JMS\Serializer\Accessor\AccessorStrategyInterface;
 use JMS\Serializer\Exception\RuntimeException;
 use JMS\Serializer\Metadata\ClassMetadata;
 use JMS\Serializer\Metadata\PropertyMetadata;
+use JMS\Serializer\Naming\AdvancedNamingStrategyInterface;
 use JMS\Serializer\Naming\PropertyNamingStrategyInterface;
 
 /**
@@ -49,7 +34,7 @@ class XmlSerializationVisitor extends AbstractVisitor
     /** @var boolean */
     private $formatOutput;
 
-    public function __construct(PropertyNamingStrategyInterface $namingStrategy, AccessorStrategyInterface $accessorStrategy = null)
+    public function __construct($namingStrategy, AccessorStrategyInterface $accessorStrategy = null)
     {
         parent::__construct($namingStrategy, $accessorStrategy);
         $this->objectMetadataStack = new \SplStack;
@@ -124,24 +109,24 @@ class XmlSerializationVisitor extends AbstractVisitor
 
         if (null === $this->document) {
             $this->document = $this->createDocument(null, null, true);
-            $this->currentNode->appendChild($doCData ? $this->document->createCDATASection($data) : $this->document->createTextNode((string) $data));
+            $this->currentNode->appendChild($doCData ? $this->document->createCDATASection($data) : $this->document->createTextNode((string)$data));
 
             return;
         }
 
-        return $doCData ? $this->document->createCDATASection($data) : $this->document->createTextNode((string) $data);
+        return $doCData ? $this->document->createCDATASection($data) : $this->document->createTextNode((string)$data);
     }
 
     public function visitSimpleString($data, array $type, Context $context)
     {
         if (null === $this->document) {
             $this->document = $this->createDocument(null, null, true);
-            $this->currentNode->appendChild($this->document->createTextNode((string) $data));
+            $this->currentNode->appendChild($this->document->createTextNode((string)$data));
 
             return;
         }
 
-        return $this->document->createTextNode((string) $data);
+        return $this->document->createTextNode((string)$data);
     }
 
     public function visitBoolean($data, array $type, Context $context)
@@ -189,7 +174,7 @@ class XmlSerializationVisitor extends AbstractVisitor
             $this->setCurrentNode($entryNode);
 
             if (null !== $keyAttributeName) {
-                $entryNode->setAttribute($keyAttributeName, (string) $k);
+                $entryNode->setAttribute($keyAttributeName, (string)$k);
             }
 
             if (null !== $node = $this->navigator->accept($v, $this->getElementType($type), $context)) {
@@ -208,7 +193,7 @@ class XmlSerializationVisitor extends AbstractVisitor
             $this->document = $this->createDocument(null, null, false);
             if ($metadata->xmlRootName) {
                 $rootName = $metadata->xmlRootName;
-                $rootNamespace = $metadata->xmlRootNamespace?:$this->getClassDefaultNamespace($metadata);
+                $rootNamespace = $metadata->xmlRootNamespace ?: $this->getClassDefaultNamespace($metadata);
             } else {
                 $rootName = $this->defaultRootName;
                 $rootNamespace = $this->defaultRootNamespace;
@@ -241,17 +226,22 @@ class XmlSerializationVisitor extends AbstractVisitor
             $node = $this->navigator->accept($v, $metadata->type, $context);
             $this->revertCurrentMetadata();
 
-            if ( ! $node instanceof \DOMCharacterData) {
+            if (!$node instanceof \DOMCharacterData) {
                 throw new RuntimeException(sprintf('Unsupported value for XML attribute for %s. Expected character data, but got %s.', $metadata->name, json_encode($v)));
             }
-            $attributeName = $this->namingStrategy->translateName($metadata);
+            if ($this->namingStrategy instanceof AdvancedNamingStrategyInterface) {
+                $attributeName = $this->namingStrategy->getPropertyName($metadata, $context);
+            } else {
+                $attributeName = $this->namingStrategy->translateName($metadata);
+            }
             $this->setAttributeOnNode($this->currentNode, $attributeName, $node->nodeValue, $metadata->xmlNamespace);
 
             return;
         }
 
         if (($metadata->xmlValue && $this->currentNode->childNodes->length > 0)
-            || ( ! $metadata->xmlValue && $this->hasValue)) {
+            || (!$metadata->xmlValue && $this->hasValue)
+        ) {
             throw new RuntimeException(sprintf('If you make use of @XmlValue, all other properties in the class must have the @XmlAttribute annotation. Invalid usage detected in class %s.', $metadata->class));
         }
 
@@ -262,8 +252,8 @@ class XmlSerializationVisitor extends AbstractVisitor
             $node = $this->navigator->accept($v, $metadata->type, $context);
             $this->revertCurrentMetadata();
 
-            if ( ! $node instanceof \DOMCharacterData) {
-                throw new RuntimeException(sprintf('Unsupported value for property %s::$%s. Expected character data, but got %s.', $metadata->reflection->class, $metadata->reflection->name, is_object($node) ? get_class($node) : gettype($node)));
+            if (!$node instanceof \DOMCharacterData) {
+                throw new RuntimeException(sprintf('Unsupported value for property %s::$%s. Expected character data, but got %s.', $metadata->reflection->class, $metadata->reflection->name, \is_object($node) ? \get_class($node) : \gettype($node)));
             }
 
             $this->currentNode->appendChild($node);
@@ -272,8 +262,8 @@ class XmlSerializationVisitor extends AbstractVisitor
         }
 
         if ($metadata->xmlAttributeMap) {
-            if ( ! is_array($v)) {
-                throw new RuntimeException(sprintf('Unsupported value type for XML attribute map. Expected array but got %s.', gettype($v)));
+            if (!\is_array($v)) {
+                throw new RuntimeException(sprintf('Unsupported value type for XML attribute map. Expected array but got %s.', \gettype($v)));
             }
 
             foreach ($v as $key => $value) {
@@ -281,7 +271,7 @@ class XmlSerializationVisitor extends AbstractVisitor
                 $node = $this->navigator->accept($value, null, $context);
                 $this->revertCurrentMetadata();
 
-                if ( ! $node instanceof \DOMCharacterData) {
+                if (!$node instanceof \DOMCharacterData) {
                     throw new RuntimeException(sprintf('Unsupported value for a XML attribute map value. Expected character data, but got %s.', json_encode($v)));
                 }
 
@@ -291,8 +281,12 @@ class XmlSerializationVisitor extends AbstractVisitor
             return;
         }
 
-        if ($addEnclosingElement = !$this->isInLineCollection($metadata) && ! $metadata->inline) {
-            $elementName = $this->namingStrategy->translateName($metadata);
+        if ($addEnclosingElement = !$this->isInLineCollection($metadata) && !$metadata->inline) {
+            if ($this->namingStrategy instanceof AdvancedNamingStrategyInterface) {
+                $elementName = $this->namingStrategy->getPropertyName($metadata, $context);
+            } else {
+                $elementName = $this->namingStrategy->translateName($metadata);
+            }
 
             $namespace = null !== $metadata->xmlNamespace
                 ? $metadata->xmlNamespace
@@ -367,8 +361,18 @@ class XmlSerializationVisitor extends AbstractVisitor
         return $this->currentMetadata;
     }
 
+    /**
+     * @param bool $create (default = false)
+     * @return \DOMDocument
+     */
     public function getDocument()
     {
+        if (func_num_args() === 1) {
+            if (null === $this->document && func_get_arg(0) === true) {
+                $this->document = $this->createDocument();
+            }
+        }
+
         return $this->document;
     }
 
@@ -394,6 +398,13 @@ class XmlSerializationVisitor extends AbstractVisitor
         return $this->currentMetadata = $this->metadataStack->pop();
     }
 
+    /**
+     * @deprecated Use $this->getDocument(true) instead
+     * @param null $version
+     * @param null $encoding
+     * @param bool $addRoot
+     * @return \DOMDocument
+     */
     public function createDocument($version = null, $encoding = null, $addRoot = true)
     {
         $doc = new \DOMDocument($version ?: $this->defaultVersion, $encoding ?: $this->defaultEncoding);
@@ -423,12 +434,12 @@ class XmlSerializationVisitor extends AbstractVisitor
     {
         if (null === $this->document) {
             $this->document = $this->createDocument(null, null, true);
-            $this->currentNode->appendChild($textNode = $this->document->createTextNode((string) $data));
+            $this->currentNode->appendChild($textNode = $this->document->createTextNode((string)$data));
 
             return $textNode;
         }
 
-        return $this->document->createTextNode((string) $data);
+        return $this->document->createTextNode((string)$data);
     }
 
     /**
@@ -445,7 +456,7 @@ class XmlSerializationVisitor extends AbstractVisitor
 
     private function attachNullNamespace()
     {
-        if ( ! $this->nullWasVisited) {
+        if (!$this->nullWasVisited) {
             $this->document->documentElement->setAttributeNS(
                 'http://www.w3.org/2000/xmlns/',
                 'xmlns:xsi',
@@ -466,7 +477,7 @@ class XmlSerializationVisitor extends AbstractVisitor
         foreach ($metadata->xmlNamespaces as $prefix => $uri) {
             $attribute = 'xmlns';
             if ($prefix !== '') {
-                $attribute .= ':'.$prefix;
+                $attribute .= ':' . $prefix;
             } elseif ($element->namespaceURI === $uri) {
                 continue;
             }
@@ -483,7 +494,7 @@ class XmlSerializationVisitor extends AbstractVisitor
             return $this->document->createElementNS($namespace, $tagName);
         }
         if (!($prefix = $this->currentNode->lookupPrefix($namespace)) && !($prefix = $this->document->lookupPrefix($namespace))) {
-            $prefix = 'ns-'.  substr(sha1($namespace), 0, 8);
+            $prefix = 'ns-' . substr(sha1($namespace), 0, 8);
         }
         return $this->document->createElementNS($namespace, $prefix . ':' . $tagName);
     }
@@ -492,9 +503,9 @@ class XmlSerializationVisitor extends AbstractVisitor
     {
         if (null !== $namespace) {
             if (!$prefix = $node->lookupPrefix($namespace)) {
-                $prefix = 'ns-'.  substr(sha1($namespace), 0, 8);
+                $prefix = 'ns-' . substr(sha1($namespace), 0, 8);
             }
-            $node->setAttributeNS($namespace, $prefix.':'.$name, $value);
+            $node->setAttributeNS($namespace, $prefix . ':' . $name, $value);
         } else {
             $node->setAttribute($name, $value);
         }
@@ -502,7 +513,7 @@ class XmlSerializationVisitor extends AbstractVisitor
 
     private function getClassDefaultNamespace(ClassMetadata $metadata)
     {
-        return (isset($metadata->xmlNamespaces[''])?$metadata->xmlNamespaces['']:null);
+        return (isset($metadata->xmlNamespaces['']) ? $metadata->xmlNamespaces[''] : null);
     }
 
     /**
@@ -518,6 +529,6 @@ class XmlSerializationVisitor extends AbstractVisitor
      */
     public function setFormatOutput($formatOutput)
     {
-        $this->formatOutput = (boolean) $formatOutput;
+        $this->formatOutput = (boolean)$formatOutput;
     }
 }

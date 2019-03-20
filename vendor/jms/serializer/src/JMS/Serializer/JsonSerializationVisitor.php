@@ -1,26 +1,11 @@
 <?php
 
-/*
- * Copyright 2016 Johannes M. Schmitt <schmittjoh@gmail.com>
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 namespace JMS\Serializer;
 
-use JMS\Serializer\Metadata\ClassMetadata;
 use JMS\Serializer\Exception\InvalidArgumentException;
+use JMS\Serializer\Metadata\ClassMetadata;
 use JMS\Serializer\Metadata\PropertyMetadata;
+use JMS\Serializer\Naming\AdvancedNamingStrategyInterface;
 
 class JsonSerializationVisitor extends GenericSerializationVisitor
 {
@@ -57,7 +42,7 @@ class JsonSerializationVisitor extends GenericSerializationVisitor
             $this->root = $data;
         }
 
-        return (string) $data;
+        return (string)$data;
     }
 
     public function visitBoolean($data, array $type, Context $context)
@@ -66,7 +51,7 @@ class JsonSerializationVisitor extends GenericSerializationVisitor
             $this->root = $data;
         }
 
-        return (boolean) $data;
+        return (boolean)$data;
     }
 
     public function visitInteger($data, array $type, Context $context)
@@ -75,7 +60,7 @@ class JsonSerializationVisitor extends GenericSerializationVisitor
             $this->root = $data;
         }
 
-        return (int) $data;
+        return (int)$data;
     }
 
     public function visitDouble($data, array $type, Context $context)
@@ -84,7 +69,7 @@ class JsonSerializationVisitor extends GenericSerializationVisitor
             $this->root = $data;
         }
 
-        return (float) $data;
+        return (float)$data;
     }
 
     /**
@@ -106,7 +91,7 @@ class JsonSerializationVisitor extends GenericSerializationVisitor
             $rs = $isHash ? new \ArrayObject() : array();
         }
 
-        $isList = isset($type['params'][0]) && ! isset($type['params'][1]);
+        $isList = isset($type['params'][0]) && !isset($type['params'][1]);
 
         foreach ($data as $k => $v) {
             $v = $this->navigator->accept($v, $this->getElementType($type), $context);
@@ -159,16 +144,20 @@ class JsonSerializationVisitor extends GenericSerializationVisitor
 
         $v = $this->navigator->accept($v, $metadata->type, $context);
         if ((null === $v && $context->shouldSerializeNull() !== true)
-            || (true === $metadata->skipWhenEmpty && ($v instanceof \ArrayObject || is_array($v)) && 0 === count($v))
+            || (true === $metadata->skipWhenEmpty && ($v instanceof \ArrayObject || \is_array($v)) && 0 === count($v))
         ) {
             return;
         }
 
-        $k = $this->namingStrategy->translateName($metadata);
+        if ($this->namingStrategy instanceof AdvancedNamingStrategyInterface) {
+            $k = $this->namingStrategy->getPropertyName($metadata, $context);
+        } else {
+            $k = $this->namingStrategy->translateName($metadata);
+        }
 
         if ($metadata->inline) {
-            if (is_array($v)) {
-                $this->data = array_merge($this->data, $v);
+            if (\is_array($v) || ($v instanceof \ArrayObject)) {
+                $this->data = array_merge($this->data, (array) $v);
             }
         } else {
             $this->data[$k] = $v;
@@ -251,6 +240,6 @@ class JsonSerializationVisitor extends GenericSerializationVisitor
 
     public function setOptions($options)
     {
-        $this->options = (integer) $options;
+        $this->options = (integer)$options;
     }
 }

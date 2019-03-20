@@ -1,24 +1,7 @@
 <?php
 
-/*
- * Copyright 2016 Johannes M. Schmitt <schmittjoh@gmail.com>
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 namespace JMS\Serializer;
 
-use JMS\Serializer\Exception\LogicException;
 use JMS\Serializer\Exception\RuntimeException;
 use Metadata\MetadataFactoryInterface;
 
@@ -53,7 +36,7 @@ class SerializationContext extends Context
 
     public function startVisiting($object)
     {
-        if ( ! is_object($object)) {
+        if (!\is_object($object)) {
             return;
         }
         $this->visitingSet->attach($object);
@@ -62,7 +45,7 @@ class SerializationContext extends Context
 
     public function stopVisiting($object)
     {
-        if ( ! is_object($object)) {
+        if (!\is_object($object)) {
             return;
         }
         $this->visitingSet->detach($object);
@@ -75,7 +58,7 @@ class SerializationContext extends Context
 
     public function isVisiting($object)
     {
-        if ( ! is_object($object)) {
+        if (!\is_object($object)) {
             return false;
         }
 
@@ -86,10 +69,10 @@ class SerializationContext extends Context
     {
         $path = array();
         foreach ($this->visitingStack as $obj) {
-            $path[] = get_class($obj);
+            $path[] = \get_class($obj);
         }
 
-        if ( ! $path) {
+        if (!$path) {
             return null;
         }
 
@@ -108,7 +91,7 @@ class SerializationContext extends Context
 
     public function getObject()
     {
-        return ! $this->visitingStack->isEmpty() ? $this->visitingStack->top() : null;
+        return !$this->visitingStack->isEmpty() ? $this->visitingStack->top() : null;
     }
 
     public function getVisitingStack()

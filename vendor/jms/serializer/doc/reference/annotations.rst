@@ -45,6 +45,22 @@ This annotation can be defined on a property to define the serialized name for a
 property. If this is not defined, the property will be translated from camel-case
 to a lower-cased underscored name, e.g. camelCase -> camel_case.
 
+Note that this annotation is not used when you're using any other naming 
+stategy than the default configuration (which includes the 
+``SerializedNameAnnotationStrategy``). In order to re-enable the annotation, you
+will need to wrap your custom strategy with the ``SerializedNameAnnotationStrategy``.
+
+.. code-block :: php
+
+    <?php
+    $serializer = \JMS\Serializer\SerializerBuilder::create()
+        ->setPropertyNamingStrategy(
+            new \JMS\Serializer\Naming\SerializedNameAnnotationStrategy(
+                new \JMS\Serializer\Naming\IdenticalPropertyNamingStrategy()
+            )
+        )
+        ->build();
+
 @Since
 ~~~~~~
 This annotation can be defined on a property to specify starting from which
@@ -303,7 +319,7 @@ by the object itself.
 .. versionadded : 0.12
     @Discriminator was added
 
-This annotation allows deserialization of relations which are polymorphic, but
+This annotation allows serialization/deserialization of relations which are polymorphic, but
 where a common base class exists. The ``@Discriminator`` annotation has to be applied
 to the least super type::
 
@@ -322,59 +338,73 @@ to the least super type::
 @Type
 ~~~~~
 This annotation can be defined on a property to specify the type of that property.
-For deserialization, this annotation must be defined. For serialization, you may
-define it in order to enhance the produced output; for example, you may want to
-force a certain format to be used for DateTime types.
+For deserialization, this annotation must be defined.
+The ``@Type`` annotation can have parameters and parameters can be used by serialization/deserialization
+handlers to enhance the serialization or deserialization result; for example, you may want to
+force a certain format to be used for serializing DateTime types and specifying at the same time a different format
+used when deserializing them.
 
 Available Types:
 
-+-------------------------------------+--------------------------------------------------+
-| Type                                | Description                                      |
-+=====================================+==================================================+
-| boolean                             | Primitive boolean                                |
-+-------------------------------------+--------------------------------------------------+
-| integer or int                      | Primitive integer                                |
-+-------------------------------------+--------------------------------------------------+
-| double or float                     | Primitive double                                 |
-+-------------------------------------+--------------------------------------------------+
-| string                              | Primitive string                                 |
-+-------------------------------------+--------------------------------------------------+
-| array                               | An array with arbitrary keys, and values.        |
-+-------------------------------------+--------------------------------------------------+
-| array<T>                            | A list of type T (T can be any available type).  |
-|                                     | Examples:                                        |
-|                                     | array<string>, array<MyNamespace\MyObject>, etc. |
-+-------------------------------------+--------------------------------------------------+
-| array<K, V>                         | A map of keys of type K to values of type V.     |
-|                                     | Examples: array<string, string>,                 |
-|                                     | array<string, MyNamespace\MyObject>, etc.        |
-+-------------------------------------+--------------------------------------------------+
-| DateTime                            | PHP's DateTime object (default format/timezone)  |
-+-------------------------------------+--------------------------------------------------+
-| DateTime<'format'>                  | PHP's DateTime object (custom format/default     |
-|                                     | timezone)                                        |
-+-------------------------------------+--------------------------------------------------+
-| DateTime<'format', 'zone'>          | PHP's DateTime object (custom format/timezone)   |
-+-------------------------------------+--------------------------------------------------+
-| DateTimeImmutable                   | PHP's DateTimeImmutable object (default format/  |
-|                                     | timezone)                                        |
-+-------------------------------------+--------------------------------------------------+
-| DateTimeImmutable<'format'>         | PHP's DateTimeImmutable object (custom format/   |
-|                                     | default timezone)                                |
-+-------------------------------------+--------------------------------------------------+
-| DateTimeImmutable<'format', 'zone'> | PHP's DateTimeImmutable object (custom format/   |
-|                                     | timezone)                                        |
-+-------------------------------------+--------------------------------------------------+
-| DateInterval                        | PHP's DateInterval object using ISO 8601 format  |
-+-------------------------------------+--------------------------------------------------+
-| T                                   | Where T is a fully qualified class name.         |
-+-------------------------------------+--------------------------------------------------+
-| ArrayCollection<T>                  | Similar to array<T>, but will be deserialized    |
-|                                     | into Doctrine's ArrayCollection class.           |
-+-------------------------------------+--------------------------------------------------+
-| ArrayCollection<K, V>               | Similar to array<K, V>, but will be deserialized |
-|                                     | into Doctrine's ArrayCollection class.           |
-+-------------------------------------+--------------------------------------------------+
++----------------------------------------------------------+--------------------------------------------------+
+| Type                                                     | Description                                      |
++==========================================================+==================================================+
+| boolean or bool                                          | Primitive boolean                                |
++----------------------------------------------------------+--------------------------------------------------+
+| integer or int                                           | Primitive integer                                |
++----------------------------------------------------------+--------------------------------------------------+
+| double or float                                          | Primitive double                                 |
++----------------------------------------------------------+--------------------------------------------------+
+| string                                                   | Primitive string                                 |
++----------------------------------------------------------+--------------------------------------------------+
+| array                                                    | An array with arbitrary keys, and values.        |
++----------------------------------------------------------+--------------------------------------------------+
+| array<T>                                                 | A list of type T (T can be any available type).  |
+|                                                          | Examples:                                        |
+|                                                          | array<string>, array<MyNamespace\MyObject>, etc. |
++----------------------------------------------------------+--------------------------------------------------+
+| array<K, V>                                              | A map of keys of type K to values of type V.     |
+|                                                          | Examples: array<string, string>,                 |
+|                                                          | array<string, MyNamespace\MyObject>, etc.        |
++----------------------------------------------------------+--------------------------------------------------+
+| DateTime                                                 | PHP's DateTime object (default format*/timezone) |
++----------------------------------------------------------+--------------------------------------------------+
+| DateTime<'format'>                                       | PHP's DateTime object (custom format/default     |
+|                                                          | timezone)                                        |
++----------------------------------------------------------+--------------------------------------------------+
+| DateTime<'format', 'zone'>                               | PHP's DateTime object (custom format/timezone)   |
++----------------------------------------------------------+--------------------------------------------------+
+| DateTime<'format', 'zone', 'deserializeFormat'>          | PHP's DateTime object (custom format/timezone,   |
+|                                                          | deserialize format). If you do not want to       |
+|                                                          | specify a specific timezone, use an empty        |
+|                                                          | string ('').                                     |
++----------------------------------------------------------+--------------------------------------------------+
+| DateTimeImmutable                                        | PHP's DateTimeImmutable object (default format*/ |
+|                                                          | timezone)                                        |
++----------------------------------------------------------+--------------------------------------------------+
+| DateTimeImmutable<'format'>                              | PHP's DateTimeImmutable object (custom format/   |
+|                                                          | default timezone)                                |
++----------------------------------------------------------+--------------------------------------------------+
+| DateTimeImmutable<'format', 'zone'>                      | PHP's DateTimeImmutable object (custom format/   |
+|                                                          | timezone)                                        |
++----------------------------------------------------------+--------------------------------------------------+
+| DateTimeImmutable<'format', 'zone', 'deserializeFormat'> | PHP's DateTimeImmutable object (custom format/   |
+|                                                          | timezone/deserialize format). If you do not want |
+|                                                          | to specify a specific timezone, use an empty     |
+|                                                          | string ('').                                     |
++----------------------------------------------------------+--------------------------------------------------+
+| DateInterval                                             | PHP's DateInterval object using ISO 8601 format  |
++----------------------------------------------------------+--------------------------------------------------+
+| T                                                        | Where T is a fully qualified class name.         |
++----------------------------------------------------------+--------------------------------------------------+
+| ArrayCollection<T>                                       | Similar to array<T>, but will be deserialized    |
+|                                                          | into Doctrine's ArrayCollection class.           |
++----------------------------------------------------------+--------------------------------------------------+
+| ArrayCollection<K, V>                                    | Similar to array<K, V>, but will be deserialized |
+|                                                          | into Doctrine's ArrayCollection class.           |
++----------------------------------------------------------+--------------------------------------------------+
+
+(*) If the standalone jms/serializer is used then default format is `\DateTime::ISO8601` (which is not compatible with ISO-8601 despite the name). For jms/serializer-bundle the default format is `\DateTime::ATOM` (the real ISO-8601 format) but it can be changed in [configuration](https://jmsyst.com/bundles/JMSSerializerBundle/master/configuration#configuration-block-2-0).
 
 Examples:
 
