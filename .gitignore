@@ -1,5 +1,5 @@
-github
-github.pub
+git 
+git.pub
 .env
 config/database.php
 package.json
