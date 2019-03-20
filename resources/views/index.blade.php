@@ -20,13 +20,12 @@ Solid - Base de Equipamentos do Centro de Informática da Pintos
 @section('content')
    <div class="row">
 	  <div class="col-lg-4 col-xs-4" style="margin-top:400px;">
-           
-     </div> 
+
+     </div>
      <div class="col-lg-4 col-xs-4" style="margin-top:300px;background-color:#555;">
-           <a href="admin"><center><img src="{{ asset('assets/imagens/logopeq.png') }}" height="85%" alt="logo">
+           <a href="admin"><center><img src="{{ asset('assets/imagens/logo-Apeq.png') }}" height="85%" alt="logo">
            <h4 style="color:#fff;">Entrar</h4></center></a>
      </div>
    </div>
- 
-@stop
 
+@stop
