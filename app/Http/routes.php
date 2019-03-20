@@ -134,7 +134,7 @@ Route::group(array('prefix' => 'admin'), function () {
 	// Routes for HistoricoEquipamentos
 	Route::post('historicoequipamento/adiciona', 'HistoricoEquipamentoController@add')->name('historico_equipamento_adiciona');
 	Route::get('historicoequipamento/apaga/{id}', 'HistoricoEquipamentoController@delete')->name('historico_delete');
-	
+
 	// END Routes for HistoricoEquipamentos
 
 	Route::get('/', function () {
@@ -154,9 +154,9 @@ Route::group(array('prefix' => 'admin'), function () {
 
 Route::group(array('prefix' => 'admin', 'middleware' => 'SentinelAdmin'), function () {
     # Dashboard / Index
-	Route::get('/', array('as' => 'dashboard','uses' => 'JoshController@showHome'));
+	//Route::get('/', array('as' => 'dashboard','uses' => 'JoshController@showHome'));
 
-
+  Route::get('/', array('as' => 'dashboard','uses' => 'PainelController@index'));
 
 	# User Management
     Route::group(array('prefix' => 'users'), function () {
