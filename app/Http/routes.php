@@ -158,6 +158,9 @@ Route::group(array('prefix' => 'admin', 'middleware' => 'SentinelAdmin'), functi
 
   Route::get('/', array('as' => 'dashboard','uses' => 'PainelController@index'));
 
+	Route::get('assistImpressao', 'PainelController@assistImpressao')->name('assistImpressao');
+Route::post('filterImpressao', 'EquipamentoController@filterImpressao')->name('filterImpressao');
+
 	# User Management
     Route::group(array('prefix' => 'users'), function () {
     	Route::get('/', array('as' => 'users', 'uses' => 'UsersController@getIndex'));

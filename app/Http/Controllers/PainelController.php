@@ -39,10 +39,20 @@ class PainelController extends MainController
 
     public function assistImpressao(){
 
+      $assistencias = DB::select('select
+                e.id as Codigo,
+                e.descricao as descricao,
+                h.observacao as obs,
+                h.created_at as data
+                from historicoequipamento as h
+                inner join equipamentos as e
+                on e.id = h.idequipamento
+                where h.idsetor = 304 and h.status = 0
+                order by h.created_at');
 
 
       return view('admin.assistImpressao', [
-              'assistencias' => 0,
+              'assistencias' => $assistencias,
   			       'teste' => 'taok' ]
              );
     }
