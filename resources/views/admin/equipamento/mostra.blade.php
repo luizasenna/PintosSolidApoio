@@ -52,7 +52,7 @@ Mostra Equipamento
                                 <th>Código Solid</th> <td>{{ $entity->id }}</td>
                             </tr>
                             <tr>
-                                <th>Código Fornecedor</th> <td>{{ $entity->codigoexterno }}</td>
+                                <th>Código da Máquina</th> <td>{{ $entity->codigoexterno }}</td>
                             </tr>
                             <tr>
                                 <th>Localização Atual</th>
