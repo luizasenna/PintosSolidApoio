@@ -27,8 +27,9 @@ class Equipamento extends Model
         'status',
         'caracteristicas',
         'usuariolocal',
-        'situacao', 
-        'idgrupo'
+        'situacao',
+        'idgrupo',
+        'codigoexterno'
     ];
 
     protected $table = 'equipamentos';
