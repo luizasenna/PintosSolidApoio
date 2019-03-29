@@ -75,8 +75,12 @@ Editar Equipamento
 								<input type="text" class="form-control" id="datacompra" name="datacompra" value="{{ date('d/m/Y', strtotime($entity->datacompra)) }}">
 							</div>
 							<label for="chaveserial" class="col-sm-1 control-label">Chave/Serial</label>
-							<div class="col-sm-7">
-								<input type="text" class="form-control" id="chaveserial" name="chaveserial" value="{{ $entity->chaveserial }}">
+							<div class="col-sm-4">
+								<input type="text" class="form-control col-xs-2" id="chaveserial" name="chaveserial"  value="{{ $entity->chaveserial }}">
+							</div>
+							<label for="codigoexterno" class="col-sm-1 control-label">Codigo</label>
+							<div class="col-sm-2">
+								<input type="text" class="form-control col-xs-2" id="codigoexterno" size="2" name="codigoexterno"  value="{{ $entity->codigoexterno }}">
 							</div>
 						</div>
 
@@ -114,7 +118,7 @@ Editar Equipamento
 							<label for="garantia" class="col-sm-1 control-label">Garantia</label>
 							<div class="col-sm-2">
 								<input type="text" class="form-control" id="garantiaatual" name="garantia" value="{{ date('d/m/Y', strtotime($entity->garantia))}}">
-								
+
 							</div>
 						</div>
 
@@ -122,7 +126,7 @@ Editar Equipamento
 							<label for="nota" class="col-sm-2 control-label">Categoria</label>
 							<div class="col-sm-4">
 								<select class="form-control" name="idcategoria">
-									
+
 									@if($entity->idcategoria)
 									<option value="{{$entity->idcategoria}}">{{$entity->idcategoria}} - {{$entity->categoria->nome}} </option>
 									@else <option>---</option>
@@ -173,7 +177,7 @@ Editar Equipamento
 									<option value="{{$l->id}}">{{$l->id}} - {{$l->descricao}}</option>
 								@endforeach
 
-								
+
 								</select>
 							</div>
 							<label for="idsetor" class="col-sm-1 control-label">Setor</label>
@@ -203,7 +207,7 @@ Editar Equipamento
 									@endforeach
 								</select>
 							</div>
-							
+
 							<label for="idmarca" class="col-sm-1 control-label">Marca</label>
 							<div class="col-sm-4">
 								<select class="form-control" name="idmarca">
@@ -307,4 +311,3 @@ Editar Equipamento
 </script>
 
 @stop
-

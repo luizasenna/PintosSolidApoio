@@ -28,7 +28,7 @@ Mostra Equipamento
             </a>
         </li>
         <li class="active">
-            Equipamento {{ $entity->id }} 
+            Equipamento {{ $entity->id }}
         </li>
     </ol>
 </section>
@@ -52,6 +52,9 @@ Mostra Equipamento
                                 <th>Código Solid</th> <td>{{ $entity->id }}</td>
                             </tr>
                             <tr>
+                                <th>Código Fornecedor</th> <td>{{ $entity->codigoexterno }}</td>
+                            </tr>
+                            <tr>
                                 <th>Localização Atual</th>
                                 <td><b>Loja: </b>
                                 @if($entity->loja)
@@ -59,7 +62,7 @@ Mostra Equipamento
                                     {{ $entity->loja->descricao }}
                                 @else
                                     Loja não encontrada
-                                @endif    
+                                @endif
                                 <b> - Setor: </b>
                                 @if($entity->setor)
                                     {{ $entity->setor->nome }}
@@ -68,12 +71,12 @@ Mostra Equipamento
                                 @endif</td>
                             </tr>
                             <tr>
-                            <th>Código de Barras</th>                         
+                            <th>Código de Barras</th>
                             <td>@if($entity->codigobarras){{ $entity->codigobarras }}@endif</td>
                             </tr>
-                            
+
                     </table>
-                        
+
                     </div>
                     <div class="col-md-4">
                         <div class="well">
@@ -81,7 +84,7 @@ Mostra Equipamento
                                 Status:{{ $entity_status[$entity->status] }}
                             </span>
                             <hr/>
-                            <h5  class="pull-center text-center">Número de Série / Chave Serial</h5> 
+                            <h5  class="pull-center text-center">Número de Série / Chave Serial</h5>
                             <h3 class="text-primary pull-center text-center">{{ $entity->chaveserial }}</h3>
                         </div>
                     </div>
@@ -129,9 +132,9 @@ Mostra Equipamento
                                  @else ---
                                  @endif
                             </td>
-                            
+
                         </tr>
-                        
+
 
                     </table>
                     </div>
@@ -158,10 +161,10 @@ Mostra Equipamento
                            <th>Valor de compra</th>
                             <td>R$ @if($entity->valorcompra){{ $entity->valorcompra }}@endif</td>
                         </tr>
-                       
+
                         </table>
-                       
-                       
+
+
                     </div>
                     <div class="col-sm-12">
                          <table class="table table-stripped">
@@ -194,7 +197,7 @@ Mostra Equipamento
                 </div>
             </div>
         </div>
-  
+
 
     <div class="row">
         <div class="col-md-12">
@@ -324,14 +327,14 @@ Mostra Equipamento
                                 </select>
                             </div>
                          </div>
-                         <div class="form-group">    
+                         <div class="form-group">
                             <label for="garantia" class="col-sm-3 control-label">Nova Garantia</label>
-                           
-                           
+
+
 
                             <div class="col-sm-9">
                                <input type="text" class="form-control" id="garantianova" name="mudagarantia" value="{{ date('d/m/Y', strtotime($entity->garantia)) }}">
-                         
+
 
 
                             </div>
@@ -353,7 +356,7 @@ Mostra Equipamento
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
-                    
+
                 </div>
             </div>
         </div>
@@ -368,7 +371,7 @@ Mostra Equipamento
 
 <script type="text/javascript">
 
-   
+
     $('#garantianova').datepicker({
         autoclose: true,
         format: 'dd/mm/yyyy',
@@ -390,4 +393,3 @@ Mostra Equipamento
 </script>
 
 @stop
-
